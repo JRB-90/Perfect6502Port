@@ -7,5 +7,5 @@ project("perfect6502")
 
 add_subdirectory("src/measure")
 add_subdirectory("src/p6502")
-add_subdirectory("src/testbed")
+add_subdirectory("src/cpucheck")
 add_subdirectory("src/console-utils")

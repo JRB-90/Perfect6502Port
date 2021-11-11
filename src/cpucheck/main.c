@@ -9,16 +9,10 @@
 
 #define MAX_CYCLES 100
 #define SETUP_ADDR 0x8000
-#define INPUT_FILE_PATH "C:\\Development\\Test\\main.bin"
-#define OUTPUT_FILE_PATH "C:\\Development\\Test\\cpu_out.csv"
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int BOOL;
-
-extern uint8_t memory[65536];
-
-FILE* file;
 
 struct cpu_state {
 	BOOL rw;
@@ -33,49 +27,11 @@ struct cpu_state {
 	uint8_t data;
 };
 
-struct {
-	BOOL crash;
-	int length;
-	int cycles;
-	int addmode;
-	BOOL zp;
-	BOOL abs;
-	BOOL zpx;
-	BOOL absx;
-	BOOL zpy;
-	BOOL absy;
-	BOOL izx;
-	BOOL izy;
-	BOOL reads;
-	BOOL writes;
-	BOOL inputa;
-	BOOL inputx;
-	BOOL inputy;
-	BOOL inputs;
-	BOOL inputp;
-	BOOL outputa;
-	BOOL outputx;
-	BOOL outputy;
-	BOOL outputs;
-	BOOL outputp;
-} data[256];
+extern uint8_t memory[65536];
 
-enum {
-	ADDMODE_UNKNOWN,
-	ADDMODE_IZY,
-	ADDMODE_IZX,
-	ADDMODE_ZPY,
-	ADDMODE_ZPX,
-	ADDMODE_ZP,
-	ADDMODE_ABSY,
-	ADDMODE_ABSX,
-	ADDMODE_ABS,
-};
-
-uint16_t initial_s, initial_p, initial_a, initial_x, initial_y;
+FILE* file;
 void* state;
 
-void SetupMemoryManually();
 void SetupMemoryFromBinFile(char* filePath);
 struct cpu_state GetCurrentState(void* state);
 void WriteStateToFile(int cycleNumber, struct cpu_state state);
@@ -85,10 +41,21 @@ void PrintState(int cycleNumber, struct cpu_state state);
 int main(int argc, char* argv[])
 {
 	state = initAndResetChip();
-	//SetupMemoryManually();
-	SetupMemoryFromBinFile(INPUT_FILE_PATH);
 
-	file = fopen(OUTPUT_FILE_PATH, "w");
+	if (argc == 3)
+	{
+		SetupMemoryFromBinFile(argv[1]);
+		file = fopen(argv[2], "w");
+	}
+	else
+	{
+		printf(RED);
+		printf("Incorrect number of arguments, 2 expected\n");
+		printf("Usage: cpucheck input_file output_file\n");
+		printf(RST);
+
+		return 1;
+	}
 
 	PrintStateHeader();
 
@@ -105,23 +72,6 @@ int main(int argc, char* argv[])
 	DestroyChip(state);
 
 	return 0;
-}
-
-void SetupMemoryManually()
-{
-	memset(memory, 0, 65536);
-
-	uint16_t addr = SETUP_ADDR;
-	memory[0xFFFC] = SETUP_ADDR & 0xFF;
-	memory[0xFFFD] = SETUP_ADDR >> 8;
-
-	memory[addr++] = 0xEA; // NOP
-	memory[addr++] = 0xEA; // NOP
-	memory[addr++] = 0xEA; // NOP
-	memory[addr++] = 0xEA; // NOP
-	memory[addr++] = 0x4C; // JMP -> 0x8000
-	memory[addr++] = 0x00;
-	memory[addr++] = 0x80;
 }
 
 void SetupMemoryFromBinFile(char* filePath)
