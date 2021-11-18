@@ -22,7 +22,7 @@ extern unsigned char readDataBus(state_t *state);
 extern unsigned char readIR(state_t *state);
 
 extern unsigned char memory[65536];
-extern unsigned int cycle;
+unsigned int cycle;
 extern unsigned int transistors;
 
 #endif

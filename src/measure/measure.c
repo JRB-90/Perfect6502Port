@@ -7,7 +7,7 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int BOOL;
 
-extern uint8_t memory[65536];
+uint8_t memory[65536];
 
 #define YES 1
 #define NO 0

@@ -27,7 +27,7 @@ struct cpu_state {
 	uint8_t data;
 };
 
-extern uint8_t memory[65536];
+uint8_t memory[65536];
 
 FILE* file;
 void* state;
