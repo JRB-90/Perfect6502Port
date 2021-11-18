@@ -2,4 +2,4 @@
 
 #include "exported.h"
 
-double Add(double a, double b);
+EXPORTED double Add(double a, double b);
