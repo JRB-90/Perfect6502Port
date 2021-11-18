@@ -37,12 +37,7 @@ void PrintHex(int value, int length)
 	char prefix[] = "0x";
 	printf("%s", prefix);
 	char hexStr[32];
-	itoa(value, hexStr, 16);
-
-	for (i = 0; i < 32; i++)
-	{
-		hexStr[i] = toupper(hexStr[i]);
-	}
+	sprintf(hexStr, "%X", value);
 
 	for (i = 0; i < preceedingZeros; i++)
 	{
