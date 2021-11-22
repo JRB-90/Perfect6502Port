@@ -7,7 +7,7 @@
 #include "ansi_colors.h"
 #include "console_utils.h"
 
-#define MAX_CYCLES 100
+#define MAX_CYCLES 10
 #define SETUP_ADDR 0x8000
 
 typedef unsigned char uint8_t;
@@ -27,19 +27,20 @@ struct cpu_state {
 	uint8_t data;
 };
 
-uint8_t memory[65536];
-
 FILE* file;
 void* state;
+unsigned char* m;
 
 void SetupMemoryFromBinFile(char* filePath);
 struct cpu_state GetCurrentState(void* state);
 void WriteStateToFile(int cycleNumber, struct cpu_state state);
+void WriteStateToFileAsHexString(int cycleNumber, struct cpu_state state);
 void PrintStateHeader();
 void PrintState(int cycleNumber, struct cpu_state state);
 
 int main(int argc, char* argv[])
 {
+	m = GetMemory();
 	state = initAndResetChip();
 
 	if (argc == 3)
@@ -49,12 +50,15 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		printf(RED);
+		/*printf(RED);
 		printf("Incorrect number of arguments, 2 expected\n");
 		printf("Usage: cpucheck input_file output_file\n");
 		printf(RST);
 
-		return 1;
+		return 1;*/
+
+		SetupMemoryFromBinFile("C:\\Development\\Sim6502\\tests\\main.bin");
+		file = fopen("C:\\Development\\Sim6502\\tests\\cpu.csv", "w");
 	}
 
 	PrintStateHeader();
@@ -64,7 +68,8 @@ int main(int argc, char* argv[])
 		Step(state);
 		struct cpu_state currentState = GetCurrentState(state);
 		PrintState(i, currentState);
-		WriteStateToFile(i, currentState);
+		//WriteStateToFile(i, currentState);
+		WriteStateToFileAsHexString(i, currentState);
 	};
 
 	fclose(file);
@@ -76,9 +81,9 @@ int main(int argc, char* argv[])
 
 void SetupMemoryFromBinFile(char* filePath)
 {
-	memset(memory, 0, 65536);
+	memset(m, 0, 65536);
 	FILE* binFile = fopen(filePath, "rb");
-	fread(memory + 32768, 32768, 1, binFile);
+	fread(m + 32768, 32768, 1, binFile);
 	fclose(binFile);
 }
 
@@ -113,6 +118,31 @@ void WriteStateToFile(int cycleNumber, struct cpu_state state)
 	fprintf(file, "%i,", state.pc);
 	fprintf(file, "%i,", state.address);
 	fprintf(file, "%i\n", state.data);
+}
+
+void WriteStateToFileAsHexString(int cycleNumber, struct cpu_state state)
+{
+	char hexStr[8];
+	fprintf(file, "%i,", cycleNumber);
+	fprintf(file, "%i,", state.rw);
+	WriteHexStr(state.a, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.x, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.y, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.ir, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.p, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.sp, 2, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.pc, 4, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.address, 4, hexStr);
+	fprintf(file, "%s,", hexStr);
+	WriteHexStr(state.data, 2, hexStr);
+	fprintf(file, "%s\n", hexStr);
 }
 
 void PrintStateHeader()

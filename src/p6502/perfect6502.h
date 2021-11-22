@@ -20,9 +20,11 @@ extern unsigned short readAddressBus(state_t *state);
 extern void writeDataBus(state_t *state, unsigned char);
 extern unsigned char readDataBus(state_t *state);
 extern unsigned char readIR(state_t *state);
+extern void SetMemory(unsigned char* m);
+extern unsigned char* GetMemory();
 
 extern unsigned char memory[65536];
-unsigned int cycle;
+extern unsigned int cycle;
 extern unsigned int transistors;
 
 #endif

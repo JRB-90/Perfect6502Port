@@ -15,3 +15,10 @@ target_include_directories(measure PUBLIC
 target_link_libraries(measure PRIVATE
     p6502
 )
+
+set_target_properties(measure
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)

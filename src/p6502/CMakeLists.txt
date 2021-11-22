@@ -24,3 +24,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     target_compile_options(p6502 PRIVATE /EHsc /MTd /W2 /c)
     target_compile_definitions(p6502 PRIVATE WIN_EXPORT)
 endif()
+
+set_target_properties(p6502
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)

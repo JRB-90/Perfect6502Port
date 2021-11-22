@@ -17,3 +17,10 @@ target_link_libraries(cpucheck PUBLIC
     p6502
     console-utils
 )
+
+set_target_properties(cpucheck
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)

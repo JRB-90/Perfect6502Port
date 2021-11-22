@@ -21,6 +21,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "types.h"
 #include "netlist_sim.h"
 /* nodes & transistors */
@@ -31,6 +32,9 @@
  * 6502-specific Interfacing
  *
  ************************************************************/
+
+unsigned int cycle;
+unsigned char memory[65536];
 
 uint16_t
 readAddressBus(void *state)
@@ -116,7 +120,8 @@ readPC(void *state)
  *
  ************************************************************/
 
-uint8_t memory[65536];
+//uint8_t memory[65536];
+//extern unsigned char memory[65536];
 
 static uint8_t
 mRead(uint16_t a)
@@ -144,8 +149,6 @@ handleMemory(void *state)
  * Main Clock Loop
  *
  ************************************************************/
-
-unsigned int cycle;
 
 void
 Step(void *state)
@@ -202,6 +205,16 @@ void
 DestroyChip(void *state)
 {
     destroyNodesAndTransistors(state);
+}
+
+void SetMemory(unsigned char* m)
+{
+	memcpy(m, m, 65536);
+}
+
+unsigned char* GetMemory()
+{
+	return memory;
 }
 
 /************************************************************

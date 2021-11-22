@@ -7,7 +7,8 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int BOOL;
 
-uint8_t memory[65536];
+uint8_t* m;
+unsigned int cycle;
 
 #define YES 1
 #define NO 0
@@ -74,41 +75,42 @@ uint16_t initial_s, initial_p, initial_a, initial_x, initial_y;
 void
 setup_memory(uint8_t opcode)
 {
-	memset(memory, 0, 65536);
+	m = GetMemory();
+	memset(m, 0, 65536);
 
-	memory[0xFFFC] = SETUP_ADDR & 0xFF;
-	memory[0xFFFD] = SETUP_ADDR >> 8;
+	m[0xFFFC] = SETUP_ADDR & 0xFF;
+	m[0xFFFD] = SETUP_ADDR >> 8;
 	uint16_t addr = SETUP_ADDR;
-	memory[addr++] = 0xA2; /* LDA #S */
+	m[addr++] = 0xA2; /* LDA #S */
 	initial_s = addr;
-	memory[addr++] = 0x7F;
-	memory[addr++] = 0x9A; /* TXS    */
-	memory[addr++] = 0xA9; /* LDA #P */
+	m[addr++] = 0x7F;
+	m[addr++] = 0x9A; /* TXS    */
+	m[addr++] = 0xA9; /* LDA #P */
 	initial_p = addr;
-	memory[addr++] = 0;
-	memory[addr++] = 0x48; /* PHA    */
-	memory[addr++] = 0xA9; /* LHA #A */
+	m[addr++] = 0;
+	m[addr++] = 0x48; /* PHA    */
+	m[addr++] = 0xA9; /* LHA #A */
 	initial_a = addr;
-	memory[addr++] = 0;
-	memory[addr++] = 0xA2; /* LDX #X */
+	m[addr++] = 0;
+	m[addr++] = 0xA2; /* LDX #X */
 	initial_x = addr;
-	memory[addr++] = 0;
-	memory[addr++] = 0xA0; /* LDY #Y */
+	m[addr++] = 0;
+	m[addr++] = 0xA0; /* LDY #Y */
 	initial_y = addr;
-	memory[addr++] = 0;
-	memory[addr++] = 0x28; /* PLP    */
-	memory[addr++] = 0x4C; /* JMP    */
-	memory[addr++] = INSTRUCTION_ADDR & 0xFF;
-	memory[addr++] = INSTRUCTION_ADDR >> 8;
+	m[addr++] = 0;
+	m[addr++] = 0x28; /* PLP    */
+	m[addr++] = 0x4C; /* JMP    */
+	m[addr++] = INSTRUCTION_ADDR & 0xFF;
+	m[addr++] = INSTRUCTION_ADDR >> 8;
 
-	memory[INSTRUCTION_ADDR + 0] = opcode;
-	memory[INSTRUCTION_ADDR + 1] = 0;
-	memory[INSTRUCTION_ADDR + 2] = 0;
-	memory[INSTRUCTION_ADDR + 3] = 0;
+	m[INSTRUCTION_ADDR + 0] = opcode;
+	m[INSTRUCTION_ADDR + 1] = 0;
+	m[INSTRUCTION_ADDR + 2] = 0;
+	m[INSTRUCTION_ADDR + 3] = 0;
 
-	memory[0xFFFE] = BRK_VECTOR & 0xFF;
-	memory[0xFFFF] = BRK_VECTOR >> 8;
-	memory[BRK_VECTOR] = 0x00; /* loop there */
+	m[0xFFFE] = BRK_VECTOR & 0xFF;
+	m[0xFFFF] = BRK_VECTOR >> 8;
+	m[BRK_VECTOR] = 0x00; /* loop there */
 }
 
 void *state;
@@ -149,7 +151,7 @@ main()
 			data[opcode].crash = YES;
 		} else {
 			data[opcode].crash = NO;
-			uint16_t brk_addr = memory[0x0100+readSP(state)+2] | memory[0x0100+readSP(state)+3]<<8;
+			uint16_t brk_addr = m[0x0100+readSP(state)+2] | m[0x0100+readSP(state)+3]<<8;
 			data[opcode].length = brk_addr - INSTRUCTION_ADDR - BRK_LENGTH;
 
 			/**************************************************
@@ -173,18 +175,18 @@ main()
 			 * find out zp or abs reads
 			 **************************************************/
 			setup_memory(opcode);
-			memory[initial_x] = X_OFFSET;
-			memory[initial_y] = Y_OFFSET;
-			memory[MAGIC_8 + X_OFFSET + 0] = MAGIC_IZX & 0xFF;
-			memory[MAGIC_8 + X_OFFSET + 1] = MAGIC_IZX >> 8;
-			memory[MAGIC_8 + 0] = MAGIC_IZY & 0xFF;
-			memory[MAGIC_8 + 1] = MAGIC_IZY >> 8;
+			m[initial_x] = X_OFFSET;
+			m[initial_y] = Y_OFFSET;
+			m[MAGIC_8 + X_OFFSET + 0] = MAGIC_IZX & 0xFF;
+			m[MAGIC_8 + X_OFFSET + 1] = MAGIC_IZX >> 8;
+			m[MAGIC_8 + 0] = MAGIC_IZY & 0xFF;
+			m[MAGIC_8 + 1] = MAGIC_IZY >> 8;
 			resetChip_test();
 			if (data[opcode].length == 2) {
-				memory[INSTRUCTION_ADDR + 1] = MAGIC_8;
+				m[INSTRUCTION_ADDR + 1] = MAGIC_8;
 			} else if (data[opcode].length == 3) {
-				memory[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
-				memory[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
+				m[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
+				m[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
 			}
 
 			data[opcode].zp = NO;
@@ -274,17 +276,17 @@ main()
 				for (int j = 0; j < sizeof(magics)/sizeof(*magics); j++) {
 					setup_memory(opcode);
 					if (data[opcode].length == 2) {
-						memory[INSTRUCTION_ADDR + 1] = MAGIC_8;
+						m[INSTRUCTION_ADDR + 1] = MAGIC_8;
 					} else if (data[opcode].length == 3) {
-						memory[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
-						memory[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
+						m[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
+						m[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
 					}
 					switch (k) {
-						case 0: memory[initial_a] = magics[j]; break;
-						case 1: memory[initial_x] = magics[j]; break;
-						case 2: memory[initial_y] = magics[j]; break;
-						case 3: memory[initial_s] = magics[j]; break;
-						case 4: memory[initial_p] = magics[j]; break;
+						case 0: m[initial_a] = magics[j]; break;
+						case 1: m[initial_x] = magics[j]; break;
+						case 2: m[initial_y] = magics[j]; break;
+						case 3: m[initial_s] = magics[j]; break;
+						case 4: m[initial_p] = magics[j]; break;
 					}
 #define MAGIC_DATA8 3
 					switch (data[opcode].addmode) {
@@ -295,22 +297,22 @@ main()
 							//TODO
 							break;
 						case ADDMODE_ZPY:
-							memory[MAGIC_8 + memory[initial_y]] = MAGIC_DATA8;
+							m[MAGIC_8 + m[initial_y]] = MAGIC_DATA8;
 							break;
 						case ADDMODE_ZPX:
-							memory[MAGIC_8 + memory[initial_x]] = MAGIC_DATA8;
+							m[MAGIC_8 + m[initial_x]] = MAGIC_DATA8;
 							break;
 						case ADDMODE_ZP:
-							memory[MAGIC_8] = MAGIC_DATA8;
+							m[MAGIC_8] = MAGIC_DATA8;
 							break;
 						case ADDMODE_ABSY:
-							memory[MAGIC_16 + memory[initial_y]] = MAGIC_DATA8;
+							m[MAGIC_16 + m[initial_y]] = MAGIC_DATA8;
 							break;
 						case ADDMODE_ABSX:
-							memory[MAGIC_16 + memory[initial_x]] = MAGIC_DATA8;
+							m[MAGIC_16 + m[initial_x]] = MAGIC_DATA8;
 							break;
 						case ADDMODE_ABS:
-							memory[MAGIC_16] = MAGIC_DATA8;
+							m[MAGIC_16] = MAGIC_DATA8;
 							break;
 					}
 					resetChip_test();
@@ -427,16 +429,16 @@ main()
 
 			for (int j = 0; j < sizeof(magics)/sizeof(*magics) - 5; j++) {
 				setup_memory(opcode);
-				memory[initial_a] = magics[j + 0];
-				memory[initial_x] = magics[j + 1];
-				memory[initial_y] = magics[j + 2];
-				memory[initial_s] = magics[j + 3];
-				memory[initial_p] = magics[j + 4];
+				m[initial_a] = magics[j + 0];
+				m[initial_x] = magics[j + 1];
+				m[initial_y] = magics[j + 2];
+				m[initial_s] = magics[j + 3];
+				m[initial_p] = magics[j + 4];
 				if (data[opcode].length == 2) {
-					memory[INSTRUCTION_ADDR + 1] = MAGIC_8;
+					m[INSTRUCTION_ADDR + 1] = MAGIC_8;
 				} else if (data[opcode].length == 3) {
-					memory[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
-					memory[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
+					m[INSTRUCTION_ADDR + 1] = MAGIC_16 & 0xFF;
+					m[INSTRUCTION_ADDR + 2] = MAGIC_16 >> 8;
 				}
 				switch (data[opcode].addmode) {
 					case ADDMODE_IZY:
@@ -446,22 +448,22 @@ main()
 						//TODO
 						break;
 					case ADDMODE_ZPY:
-						memory[MAGIC_8 + memory[initial_y]] = MAGIC_DATA8;
+						m[MAGIC_8 + m[initial_y]] = MAGIC_DATA8;
 						break;
 					case ADDMODE_ZPX:
-						memory[MAGIC_8 + memory[initial_x]] = MAGIC_DATA8;
+						m[MAGIC_8 + m[initial_x]] = MAGIC_DATA8;
 						break;
 					case ADDMODE_ZP:
-						memory[MAGIC_8] = MAGIC_DATA8;
+						m[MAGIC_8] = MAGIC_DATA8;
 						break;
 					case ADDMODE_ABSY:
-						memory[MAGIC_16 + memory[initial_y]] = MAGIC_DATA8;
+						m[MAGIC_16 + m[initial_y]] = MAGIC_DATA8;
 						break;
 					case ADDMODE_ABSX:
-						memory[MAGIC_16 + memory[initial_x]] = MAGIC_DATA8;
+						m[MAGIC_16 + m[initial_x]] = MAGIC_DATA8;
 						break;
 					case ADDMODE_ABS:
-						memory[MAGIC_16] = MAGIC_DATA8;
+						m[MAGIC_16] = MAGIC_DATA8;
 						break;
 				}
 				resetChip_test();

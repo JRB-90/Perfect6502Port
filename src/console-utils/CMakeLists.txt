@@ -10,3 +10,10 @@ add_library(console-utils STATIC
 target_include_directories(console-utils PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+set_target_properties(console-utils
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)

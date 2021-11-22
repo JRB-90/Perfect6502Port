@@ -7,5 +7,6 @@
 #include <ctype.h>
 
 void PrintHex(int value, int length);
+void WriteHexStr(int value, int length, const char* buf);
 
 #endif
