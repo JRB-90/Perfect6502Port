@@ -7,8 +7,10 @@
 #include "ansi_colors.h"
 #include "console_utils.h"
 
-#define MAX_CYCLES 10
 #define SETUP_ADDR 0x8000
+#define MAX_CYCLES 2000
+#define STARTUP_CYCLES 16
+#define EXIT_INSTRUCTION 0x00
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -63,13 +65,26 @@ int main(int argc, char* argv[])
 
 	PrintStateHeader();
 
-	for (int i = 0; i < MAX_CYCLES; i++)
+	for (int i = 0; i < (MAX_CYCLES + STARTUP_CYCLES); i++)
 	{
 		Step(state);
+
+		if (i < STARTUP_CYCLES)
+		{
+			continue;
+		}
+		
 		struct cpu_state currentState = GetCurrentState(state);
-		PrintState(i, currentState);
+
+		if (i > STARTUP_CYCLES + 2 &&
+			readIR(state) == EXIT_INSTRUCTION)
+		{
+			break;
+		}
+
+		PrintState(i - STARTUP_CYCLES, currentState);
 		//WriteStateToFile(i, currentState);
-		WriteStateToFileAsHexString(i, currentState);
+		WriteStateToFileAsHexString(i - STARTUP_CYCLES, currentState);
 	};
 
 	fclose(file);
