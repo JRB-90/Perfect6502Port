@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "perfect6502.h"
 #include "ansi_colors.h"
@@ -32,6 +33,7 @@ struct cpu_state {
 FILE* file;
 void* state;
 unsigned char* m;
+bool isVerbose = false;
 
 void SetupMemoryFromBinFile(char* filePath);
 struct cpu_state GetCurrentState(void* state);
@@ -50,6 +52,25 @@ int main(int argc, char* argv[])
 		SetupMemoryFromBinFile(argv[1]);
 		file = fopen(argv[2], "w");
 	}
+	else if (argc == 4)
+	{
+		if (argv[1] == "-V")
+		{
+			isVerbose = true;
+		}
+		else
+		{
+			printf("Unrecognised argument: %s\n", argv[1]);
+			printf("Failed to create CSV\n");
+
+			// TODO - Print usage here
+
+			exit(1);
+		}
+
+		SetupMemoryFromBinFile(argv[2]);
+		file = fopen(argv[3], "w");
+	}
 	else
 	{
 		/*printf(RED);
@@ -63,7 +84,10 @@ int main(int argc, char* argv[])
 		file = fopen("C:\\Development\\Sim6502\\tests\\cpu.csv", "w");
 	}
 
-	PrintStateHeader();
+	if (isVerbose)
+	{
+		PrintStateHeader();
+	}
 
 	for (int i = 0; i < (MAX_CYCLES + STARTUP_CYCLES); i++)
 	{
@@ -82,13 +106,15 @@ int main(int argc, char* argv[])
 			break;
 		}
 
-		PrintState(i - STARTUP_CYCLES, currentState);
+		if (isVerbose)
+		{
+			PrintState(i - STARTUP_CYCLES, currentState);
+		}
 		//WriteStateToFile(i, currentState);
 		WriteStateToFileAsHexString(i - STARTUP_CYCLES, currentState);
 	};
 
 	fclose(file);
-
 	DestroyChip(state);
 
 	return 0;
